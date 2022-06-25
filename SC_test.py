@@ -6,7 +6,7 @@ from urllib.parse import urlencode
 import json
 
 
-### works for public / private api calls exchange interacting with "POST" exchange commands as of now
+### works for public / private api calls. interacting with "POST" exchange commands as of now does not work as intended 
 
 
 KEY = ''
