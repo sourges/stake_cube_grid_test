@@ -5,6 +5,10 @@ import requests
 from urllib.parse import urlencode
 import json
 
+
+### works for public / private api calls exchange interacting with "POST" exchange commands as of now
+
+
 KEY = ''
 SECRET = ''
 BASE_URL = 'https://stakecube.io/api/v2'
