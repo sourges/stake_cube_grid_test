@@ -4,13 +4,8 @@ import hashlib
 import requests
 from urllib.parse import urlencode
 import json
+from config import *
 
-
-### works for public / private api calls. interacting with "POST" exchange commands as of now does not work as intended 
-
-
-KEY = ''
-SECRET = ''
 BASE_URL = 'https://stakecube.io/api/v2'
 
 def hashing(query_string):
@@ -41,6 +36,7 @@ def send_signed_request(http_method, url_path, payload={}):
     query_string = urlencode(payload, True)
     if query_string:
         query_string = "{}&nonce={}".format(query_string, get_timestamp())
+        #query_string = "{}".format(query_string)
     else:
         query_string = "nonce={}".format(get_timestamp())
 
@@ -62,12 +58,57 @@ def send_public_request(url_path, payload={}):
     response = dispatch_request("GET")(url=url)
     return response.json()
 
+def order_book(market):
+    ### sells and buys orderbook - bids + asks
+    orderbook = send_public_request("/exchange/spot/orderbook?market=" + market)
+    sells = len(orderbook['result']['asks']) -1
+    lowest_sells = orderbook['result']['asks'][sells]['price']
+    highest_buys = orderbook['result']['bids'][0]['price']
+    middle_price = (float(lowest_sells) + float(highest_buys)) / 2
+    print(f"Ask : {lowest_sells}")
+    print(f"Bids : {highest_buys}")
+    print(f"In between price : {middle_price}")
+
+def check_open_orders():
+    response = send_signed_request("GET", "/exchange/spot/myOpenOrder")
+    print(response)
+
+check_open_orders()
+
+def close_order():
+    params = {
+        "orderId": "4013114"
+        # id: 3908643
+    }
+    response = send_signed_request("POST", "/exchange/spot/cancel", params)
+    print(response)
+    
+
+#close_order()
+
+def send_order():
+    params = {
+        "market": "SCC_BTC",
+        "side": "BUY",
+        "price": .000009,
+        "amount": 10
+
+    }
+
+    response = send_signed_request("POST", "/exchange/spot/order", params)
+    print(response)
 
 
-response = send_signed_request("GET", "/user/account")
-print(response['result']['wallets'])
+# nonce = get_timestamp()
 
-#filename = 'sctest.json'
+# string = f"nonce={nonce}"
+# #string = f"orderId=3911505&nonce={nonce}"
 
-#with open(filename, 'w') as f:
-#    json.dump(response, f, indent = 4)
+# sign = hashing(string)
+# url = f"https://stakecube.io/api/v2/exchange/spot/myOpenOrder?nonce={nonce}&signature={sign}"
+# #url = f"https://stakecube.io/api/v2/exchange/spot/cancel" #?orderId=3911505&nonce={nonce}&signature={sign}"
+# #params = f"orderId=3911505&nonce={nonce}&signature={sign}"
+# #response = requests.post(url, headers = headers, data = params)
+# response = requests.get(url, headers = headers)
+# print(response)
+# print(response.json())
