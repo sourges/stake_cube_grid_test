@@ -1,3 +1,7 @@
+# this whole thing needs cleaning up lmao
+
+
+
 import hmac
 import time
 import hashlib
