@@ -1,4 +1,4 @@
-# clean this whole mess up
+# need to fix for error,  try is in place for now
 
 
 import hmac
