@@ -53,12 +53,13 @@ def close_single_order(orderId):
 # places single order 
 # will need to exchange alot of info for variables to be passed through
 def place_order(price, position_size, side):
-	string = f"market=BITB_DOGE&side={side}&price={price}&amount={position_size}&nonce={get_timestamp()}"
-	sign = hashing(string)
-	params = f"market=BITB_DOGE&side={side}&price={price}&amount={position_size}&nonce={get_timestamp()}&signature={sign}"
-	url = "https://stakecube.io/api/v2/exchange/spot/order"
-	response = requests.post(url, headers = headers, data = params)
-	return response.json()
+    string = f"market=BITB_DOGE&side={side}&price={price}&amount={position_size}&nonce={get_timestamp()}"
+    sign = hashing(string)
+    params = f"market=BITB_DOGE&side={side}&price={price}&amount={position_size}&nonce={get_timestamp()}&signature={sign}"
+    url = "https://stakecube.io/api/v2/exchange/spot/order"
+    response = requests.post(url, headers = headers, data = params)
+    print(response.json())
+    return response.json()
 
 
 
@@ -173,56 +174,63 @@ orders = get_order_info()     # ['id'] - open
 
 # all prints in this loop for testing, will give more meaningful info later / take out random prints
 while True:
-	
-	closed_trades = my_trades()
-	print("*****************************************")
-	
-	count = 0
-	for sell_order in sell_orders:
-		for i in range(len(closed_trades['result'])):
-			if sell_order['orderId'] == closed_trades['result'][i]['orderId']:
-				print("****************************** sell_order loop ***************************")
-				print("trade is closed")
-				print("old sell_orders")
-				print(sell_orders)
-				print(sell_order['price'])
-				print(f"sell_order orderId = {sell_order['orderId']}")
-				new_buy_price = float(sell_order['price']) - config.grid_size
-				new_buy_order = place_order(new_buy_price, config.position_size, "BUY")
-				buy_orders.append(new_buy_order['result'])
-				print(f"buy_orders - {buy_orders}")
+
+    time.sleep(1)
+    try:
+        closed_trades = my_trades()
+    except Exception as e:
+        print("check closed trades failed")
+    else:
+        print("*****************************************")
+        	
+        count = 0
+        for sell_order in sell_orders:
+            for i in range(len(closed_trades['result'])):
+                try:
+                    if sell_order['orderId'] == closed_trades['result'][i]['orderId']:    #  using try for now, until i fix this random error 
+                        print("****************************** sell_order loop ***************************")
+                        print("trade is closed")
+                        print("old sell_orders")
+                        print(sell_orders)
+                        print(sell_order['price'])
+                        print(f"sell_order orderId = {sell_order['orderId']}")
+                        new_buy_price = float(sell_order['price']) - config.grid_size
+                        new_buy_order = place_order(new_buy_price, config.position_size, "BUY")
+                        buy_orders.append(new_buy_order['result'])
+                        print(f"buy_orders - {buy_orders}")
+                        print(count)
+                        del sell_orders[count]
+                        print("new sell_orders array")
+                        print(sell_orders)
+                        break
+                except Exception as e:
+                    print("/////////////////////// if error //////////////")
+                    continue
+            count +=1		
 
 
-				print(count)
-				del sell_orders[count]
-				print("new sell_orders array")
-				print(sell_orders)
-				break
-		count +=1		
+        count = 0
+        for buy_order in buy_orders:
+        	for i in range(len(closed_trades['result'])):
+        		if buy_order['orderId'] == closed_trades['result'][i]['orderId']:
+        			print("**********************************************  buy_order loop ****************************")
+        			print("trade is closed")
+        			print("old buy_orders")
+        			print(buy_orders)
+        			print(buy_order['price'])
+        			print(f"buy_order orderId = {buy_order['orderId']}")
+        			new_buy_price = float(buy_order['price']) + config.grid_size
+        			new_buy_order = place_order(new_buy_price, config.position_size, "SELL")
+        			sell_orders.append(new_buy_order['result'])
+        			print(f"sell_orders - {sell_orders}")
 
 
-	count = 0
-	for buy_order in buy_orders:
-		for i in range(len(closed_trades['result'])):
-			if buy_order['orderId'] == closed_trades['result'][i]['orderId']:
-				print("**********************************************  buy_order loop ****************************")
-				print("trade is closed")
-				print("old buy_orders")
-				print(buy_orders)
-				print(buy_order['price'])
-				print(f"buy_order orderId = {buy_order['orderId']}")
-				new_buy_price = float(buy_order['price']) + config.grid_size
-				new_buy_order = place_order(new_buy_price, config.position_size, "SELL")
-				sell_orders.append(new_buy_order['result'])
-				print(f"sell_orders - {sell_orders}")
+        			print(count)
+        			del buy_orders[count]
+        			print("new buy_orders array")
+        			print(buy_orders)
+        			break
+        	count +=1	
 
-
-				print(count)
-				del buy_orders[count]
-				print("new buy_orders array")
-				print(buy_orders)
-				break
-		count +=1	
-
-	print("pausing")
-	time.sleep(5)
+        print("pausing")
+        time.sleep(5)
