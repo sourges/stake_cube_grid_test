@@ -1,4 +1,4 @@
-# need to fix for error,  try is in place for now
+# clean this whole mess up
 
 
 import hmac
@@ -53,9 +53,9 @@ def close_single_order(orderId):
 # places single order 
 # will need to exchange alot of info for variables to be passed through
 def place_order(price, position_size, side):
-    string = f"market=BITB_DOGE&side={side}&price={price}&amount={position_size}&nonce={get_timestamp()}"
+    string = f"market=SCC_BTC&side={side}&price={price}&amount={position_size}&nonce={get_timestamp()}"
     sign = hashing(string)
-    params = f"market=BITB_DOGE&side={side}&price={price}&amount={position_size}&nonce={get_timestamp()}&signature={sign}"
+    params = f"market=SCC_BTC&side={side}&price={price}&amount={position_size}&nonce={get_timestamp()}&signature={sign}"
     url = "https://stakecube.io/api/v2/exchange/spot/order"
     response = requests.post(url, headers = headers, data = params)
     print(response.json())
@@ -69,9 +69,9 @@ def place_order(price, position_size, side):
 
 # doesnt have orderId
 def order_history():
-	string = f"market=BITB_DOGE&nonce={get_timestamp()}"
+	string = f"market=SCC_BTC&nonce={get_timestamp()}"
 	sign = hashing(string)
-	url = f"https://stakecube.io/api/v2/exchange/spot/myOrderHistory?market=BITB_DOGE&nonce={get_timestamp()}&signature={sign}"
+	url = f"https://stakecube.io/api/v2/exchange/spot/myOrderHistory?market=SCC_BTC&nonce={get_timestamp()}&signature={sign}"
 	response = requests.get(url, headers = headers)
 	print(response)
 	print(response.json())
@@ -82,9 +82,9 @@ def order_history():
 
 # past trades - has orderID but not if order was filled 
 def my_trades():
-	string = f"market=BITB_DOGE&nonce={get_timestamp()}"
+	string = f"market=SCC_BTC&nonce={get_timestamp()}"
 	sign = hashing(string)
-	url = f"https://stakecube.io/api/v2/exchange/spot/myTrades?market=BITB_DOGE&nonce={get_timestamp()}&signature={sign}"
+	url = f"https://stakecube.io/api/v2/exchange/spot/myTrades?market=SCC_BTC&nonce={get_timestamp()}&signature={sign}"
 	response = requests.get(url, headers = headers)
 	
 	#print(response.json()['result'])
@@ -93,7 +93,7 @@ def my_trades():
 
 
 def get_single_ticker():
-	url = "https://stakecube.io/api/v2/exchange/spot/orderbook?market=BITB_DOGE"
+	url = "https://stakecube.io/api/v2/exchange/spot/orderbook?market=SCC_BTC"
 	orderbook = requests.get(url, headers = headers)
 	#print(orderbook.json()['result']['asks'])   # sells = ask
 	sell_count = len(orderbook.json()['result']['asks'])
@@ -183,10 +183,10 @@ while True:
     else:
         print("*****************************************")
         	
-        count = 0
+        #count = 0
         for sell_order in sell_orders:
             for i in range(len(closed_trades['result'])):
-                try:
+               # try:
                     if sell_order['orderId'] == closed_trades['result'][i]['orderId']:    #  using try for now, until i fix this random error 
                         print("****************************** sell_order loop ***************************")
                         print("trade is closed")
@@ -198,18 +198,20 @@ while True:
                         new_buy_order = place_order(new_buy_price, config.position_size, "BUY")
                         buy_orders.append(new_buy_order['result'])
                         print(f"buy_orders - {buy_orders}")
-                        print(count)
-                        del sell_orders[count]
+
+
+                        print(i)
+                        del sell_orders[i]
                         print("new sell_orders array")
                         print(sell_orders)
                         break
-                except Exception as e:
-                    print("/////////////////////// if error //////////////")
-                    continue
-            count +=1		
+                #except Exception as e:
+                 #   print("/////////////////////// if error //////////////")
+                  #  continue
+            #count +=1		
 
 
-        count = 0
+        #count = 0
         for buy_order in buy_orders:
         	for i in range(len(closed_trades['result'])):
         		if buy_order['orderId'] == closed_trades['result'][i]['orderId']:
@@ -225,12 +227,12 @@ while True:
         			print(f"sell_orders - {sell_orders}")
 
 
-        			print(count)
-        			del buy_orders[count]
+        			print(i)
+        			del buy_orders[i]
         			print("new buy_orders array")
         			print(buy_orders)
         			break
-        	count +=1	
+        	#count +=1	
 
         print("pausing")
         time.sleep(5)
