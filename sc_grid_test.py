@@ -42,16 +42,9 @@ def close_single_order(orderId):
 	print(response.json())
 
 
-#orderId = ''
-#close_single_order(orderId)
-
-
-
-
-
 
 # places single order 
-# will need to exchange alot of info for variables to be passed through
+
 def place_order(price, position_size, side):
     string = f"market=SCC_BTC&side={side}&price={price}&amount={position_size}&nonce={get_timestamp()}"
     sign = hashing(string)
@@ -63,11 +56,8 @@ def place_order(price, position_size, side):
 
 
 
-
-#get_order_info()
-
-
 # doesnt have orderId
+
 def order_history():
 	string = f"market=SCC_BTC&nonce={get_timestamp()}"
 	sign = hashing(string)
@@ -77,17 +67,15 @@ def order_history():
 	print(response.json())
 	return response.json()
 
-#order_history()
-
 
 # past trades - has orderID but not if order was filled 
+
 def my_trades():
 	string = f"market=SCC_BTC&nonce={get_timestamp()}"
 	sign = hashing(string)
 	url = f"https://stakecube.io/api/v2/exchange/spot/myTrades?market=SCC_BTC&nonce={get_timestamp()}&signature={sign}"
 	response = requests.get(url, headers = headers)
 	
-	#print(response.json()['result'])
 	return response.json()
 
 
@@ -109,9 +97,9 @@ def get_single_ticker():
 
 	return average
 
-# get_single_ticker()
 
 # will take out prints later - using them for testing right now
+
 def test_grid():
 
 	current_price = get_single_ticker()  # to get the median price
@@ -120,36 +108,21 @@ def test_grid():
 
 
 	# sell grid
+
 	for i in range(config.number_sell_gridlines):
 		price = current_price + (config.grid_size * (i+1))
 		price = round(price, 8)
-		#print(price)
 		time.sleep(1)
 		order = place_order(price, config.position_size, side = "SELL")
 
 		sell_orders.append(order['result'])
 
-	# # for testing
-	# order = place_order(0.002785, 2, "SELL")   # for testing 
-	# sell_orders.append(order['result'])
-
-	# order = place_order(0.00289, 2, "SELL")
-	# sell_orders.append(order['result'])
-
-	
-	# 	print(f"Sell orders - {sell_orders}")
-
-	# print("final sell array")	
-	# print(sell_orders)
-
-
 
  	# buy grid
+
 	for i in range(config.number_buy_gridlines):
 		price = current_price - (config.grid_size * (i+1))
 		price = round(price, 8)
-
-		print(price)  
 
 		time.sleep(1)
 		order = place_order(price, config.position_size, side = "BUY")
@@ -167,12 +140,13 @@ closed_orders = []
 orders = get_order_info()     # ['id'] - open
 # sell_orders, buy_orders     # ['orderId'] 
 
-#print(closed_trades['result'])
+
 
 # closed orderId
 
 
 # all prints in this loop for testing, will give more meaningful info later / take out random prints
+
 while True:
 
     time.sleep(1)
@@ -183,11 +157,12 @@ while True:
     else:
         print("*****************************************")
         	
-        #count = 0
+        #count = 0  -  dont need, currently testing w/o count
+
         for sell_order in sell_orders:
             for i in range(len(closed_trades['result'])):
-               # try:
-                    if sell_order['orderId'] == closed_trades['result'][i]['orderId']:    #  using try for now, until i fix this random error 
+               # try:                                                       # testing try off and on while figuring out random error
+                    if sell_order['orderId'] == closed_trades['result'][i]['orderId']:    
                         print("****************************** sell_order loop ***************************")
                         print("trade is closed")
                         print("old sell_orders")
@@ -211,7 +186,8 @@ while True:
             #count +=1		
 
 
-        #count = 0
+        #count = 0   - dont need, currently testing w/o count
+
         for buy_order in buy_orders:
         	for i in range(len(closed_trades['result'])):
         		if buy_order['orderId'] == closed_trades['result'][i]['orderId']:
