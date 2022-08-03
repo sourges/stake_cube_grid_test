@@ -15,7 +15,7 @@ grid_size = 0.00000050 # SCC-BTC
 # BITB - .00015
 # DASH - .0001
 
-check_orders_frequency = 1
+check_orders_frequency = 1  # dont need - check later
 
 #closed_order_status = False  - probably delete
 
