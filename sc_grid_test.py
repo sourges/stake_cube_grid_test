@@ -1,4 +1,3 @@
-# clean this whole mess up
 
 
 import hmac
@@ -19,15 +18,6 @@ def hashing(query_string):
 
 def get_timestamp():
     return int(time.time() * 1000)
-
-
-
-def get_order_info():
-	string = f"nonce={get_timestamp()}"
-	sign = hashing(string)
-	url = f"https://stakecube.io/api/v2/exchange/spot/myOpenOrder?nonce={get_timestamp()}&signature={sign}"
-	response = requests.get(url, headers = headers)
-	return response.json()['result']
 
 
 
@@ -92,6 +82,31 @@ def get_single_ticker():
 	return average
 
 
+
+# asset / balance / balanceInOrder / balanceInMasternodes / address (wallet address)
+
+def get_account():
+    string = f"nonce={get_timestamp()}"
+    sign = hashing(string)
+    url = f"https://stakecube.io/api/v2/user/account?nonce={get_timestamp()}&signature={sign}"
+    response = requests.get(url, headers = headers)
+    #print(response.json()['result']['wallets'][0])
+    for i in range(len(response.json()['result']['wallets'])):
+        if float(response.json()['result']['wallets'][i]['balance']) > 0:
+            print(f"{response.json()['result']['wallets'][i]['asset']} - {response.json()['result']['wallets'][i]['balance']}")
+            
+
+#get_account()
+
+def get_open_order_info():
+    string = f"nonce={get_timestamp()}"
+    sign = hashing(string)
+    url = f"https://stakecube.io/api/v2/exchange/spot/myOpenOrder?nonce={get_timestamp()}&signature={sign}"
+    response = requests.get(url, headers = headers)
+    print(response.json()['result'])
+    #return response.json()['result']
+
+
 # will take out prints later - using them for testing right now
 
 def test_grid():
@@ -128,7 +143,7 @@ closed_orders = []
 
 
 # closed_trades = my_trades() # ['orderId'] 
-orders = get_order_info()     # ['id'] - open
+orders = get_open_order_info()     # ['id'] - open
 # sell_orders, buy_orders     # ['orderId'] 
 
 
@@ -197,3 +212,33 @@ while True:
         print("pausing")
         time.sleep(5)
 
+
+
+# a quick CLI menu so user does not have to constantly change out traded pairs
+# eventually will add grid_size, amount, etc
+# funtional but useless for now
+
+
+
+# def main():
+#     loop_dict = {'A': get_account, 'B': get_open_order_info}
+#     while True:
+#         print()
+#         print("Welcome to the test menu")
+#         print('''What would you like to do:
+# A - Check available account balances 
+# B - Check open positions ''')
+#         print()
+#         answer = input("Enter 'A', 'B' or 'Q' to quit: ").upper()
+#         if answer == 'Q':
+#             break
+#         for x in loop_dict:
+#             if x == answer:
+#                 loop_dict[x]()
+#                 #test = loop_dict[x]()      # - printing info from function or creating an object that has value? - figure out as loop gets bigger
+#                 #print(test)
+
+
+
+# if __name__ == '__main__':
+#     main()
