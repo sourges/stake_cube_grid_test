@@ -27,7 +27,6 @@ def get_order_info():
 	sign = hashing(string)
 	url = f"https://stakecube.io/api/v2/exchange/spot/myOpenOrder?nonce={get_timestamp()}&signature={sign}"
 	response = requests.get(url, headers = headers)
-	#print(response.json()[])
 	return response.json()['result']
 
 
@@ -75,7 +74,6 @@ def my_trades():
 	sign = hashing(string)
 	url = f"https://stakecube.io/api/v2/exchange/spot/myTrades?market=SCC_BTC&nonce={get_timestamp()}&signature={sign}"
 	response = requests.get(url, headers = headers)
-	
 	return response.json()
 
 
@@ -83,14 +81,10 @@ def my_trades():
 def get_single_ticker():
 	url = "https://stakecube.io/api/v2/exchange/spot/orderbook?market=SCC_BTC"
 	orderbook = requests.get(url, headers = headers)
-	#print(orderbook.json()['result']['asks'])   # sells = ask
 	sell_count = len(orderbook.json()['result']['asks'])
-	#print(orderbook.json()['result']['asks'][sell_count-1]) # best sell order
-	#print(orderbook.json()['result']['bids'][0])
 
 	best_ask = orderbook.json()['result']['asks'][sell_count-1]['price']
 	best_bid = orderbook.json()['result']['bids'][0]['price']
-	#print(best_ask, best_bid)
 
 	average = (float(best_ask) + float(best_bid)) / 2
 	print(f"average - {average}")
@@ -106,7 +100,6 @@ def test_grid():
 	buy_orders = []
 	sell_orders = []
 
-
 	# sell grid
 
 	for i in range(config.number_sell_gridlines):
@@ -114,7 +107,6 @@ def test_grid():
 		price = round(price, 8)
 		time.sleep(1)
 		order = place_order(price, config.position_size, side = "SELL")
-
 		sell_orders.append(order['result'])
 
 
@@ -127,7 +119,6 @@ def test_grid():
 		time.sleep(1)
 		order = place_order(price, config.position_size, side = "BUY")
 		buy_orders.append(order['result'])
-		print(f"Buy orders - {buy_orders}")
 
 	return sell_orders, buy_orders
 
@@ -142,9 +133,6 @@ orders = get_order_info()     # ['id'] - open
 
 
 
-# closed orderId
-
-
 # all prints in this loop for testing, will give more meaningful info later / take out random prints
 
 while True:
@@ -157,7 +145,6 @@ while True:
     else:
         print("*****************************************")
         	
-        #count = 0  -  dont need, currently testing w/o count
 
         for sell_order in sell_orders:
             for i in range(len(closed_trades['result'])):
@@ -182,11 +169,9 @@ while True:
                         break
                 #except Exception as e:
                  #   print("/////////////////////// if error //////////////")
-                  #  continue
-            #count +=1		
+                  #  continue	
 
 
-        #count = 0   - dont need, currently testing w/o count
 
         for buy_order in buy_orders:
         	for i in range(len(closed_trades['result'])):
@@ -208,7 +193,7 @@ while True:
         			print("new buy_orders array")
         			print(buy_orders)
         			break
-        	#count +=1	
 
         print("pausing")
         time.sleep(5)
+
