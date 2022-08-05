@@ -35,9 +35,9 @@ def close_single_order(orderId):
 # places single order 
 
 def place_order(price, position_size, side):
-    string = f"market=SCC_BTC&side={side}&price={price}&amount={position_size}&nonce={get_timestamp()}"
+    string = f"market=BITB_DOGE&side={side}&price={price}&amount={position_size}&nonce={get_timestamp()}"
     sign = hashing(string)
-    params = f"market=SCC_BTC&side={side}&price={price}&amount={position_size}&nonce={get_timestamp()}&signature={sign}"
+    params = f"market=BITB_DOGE&side={side}&price={price}&amount={position_size}&nonce={get_timestamp()}&signature={sign}"
     url = "https://stakecube.io/api/v2/exchange/spot/order"
     response = requests.post(url, headers = headers, data = params)
     print(response.json())
@@ -48,9 +48,9 @@ def place_order(price, position_size, side):
 # doesnt have orderId
 
 def order_history():
-	string = f"market=SCC_BTC&nonce={get_timestamp()}"
+	string = f"market=BITB_DOGE&nonce={get_timestamp()}"
 	sign = hashing(string)
-	url = f"https://stakecube.io/api/v2/exchange/spot/myOrderHistory?market=SCC_BTC&nonce={get_timestamp()}&signature={sign}"
+	url = f"https://stakecube.io/api/v2/exchange/spot/myOrderHistory?market=BITB_DOGE&nonce={get_timestamp()}&signature={sign}"
 	response = requests.get(url, headers = headers)
 	print(response)
 	print(response.json())
@@ -60,16 +60,16 @@ def order_history():
 # past trades - has orderID but not if order was filled 
 
 def my_trades():
-	string = f"market=SCC_BTC&nonce={get_timestamp()}"
+	string = f"market=BITB_DOGE&nonce={get_timestamp()}"
 	sign = hashing(string)
-	url = f"https://stakecube.io/api/v2/exchange/spot/myTrades?market=SCC_BTC&nonce={get_timestamp()}&signature={sign}"
+	url = f"https://stakecube.io/api/v2/exchange/spot/myTrades?market=BITB_DOGE&nonce={get_timestamp()}&signature={sign}"
 	response = requests.get(url, headers = headers)
 	return response.json()
 
 
 
 def get_single_ticker():
-	url = "https://stakecube.io/api/v2/exchange/spot/orderbook?market=SCC_BTC"
+	url = "https://stakecube.io/api/v2/exchange/spot/orderbook?market=BITB_DOGE"
 	orderbook = requests.get(url, headers = headers)
 	sell_count = len(orderbook.json()['result']['asks'])
 
@@ -163,8 +163,8 @@ while True:
 
         for sell_order in sell_orders:
             for i in range(len(closed_trades['result'])):
-               # try:                                                       # testing try off and on while figuring out random error
-                    if sell_order['orderId'] == closed_trades['result'][i]['orderId']:    
+                try:                                                       # testing try off and on while figuring out random error
+                    if sell_order['orderId'] == closed_trades['result'][i]['orderId']:                # testing more - looks like an error happens when a buy gets 'invalid signature parameter'
                         print("****************************** sell_order loop ***************************")
                         print("trade is closed")
                         print("old sell_orders")
@@ -182,9 +182,9 @@ while True:
                         print("new sell_orders array")
                         print(sell_orders)
                         break
-                #except Exception as e:
-                 #   print("/////////////////////// if error //////////////")
-                  #  continue	
+                except Exception as e:
+                    print("/////////////////////// if error //////////////")
+                    continue	
 
 
 
@@ -197,9 +197,9 @@ while True:
         			print(buy_orders)
         			print(buy_order['price'])
         			print(f"buy_order orderId = {buy_order['orderId']}")
-        			new_buy_price = float(buy_order['price']) + config.grid_size
-        			new_buy_order = place_order(new_buy_price, config.position_size, "SELL")
-        			sell_orders.append(new_buy_order['result'])
+        			new_sell_price = float(buy_order['price']) + config.grid_size
+        			new_sell_order = place_order(new_sell_price, config.position_size, "SELL")
+        			sell_orders.append(new_sell_order['result'])
         			print(f"sell_orders - {sell_orders}")
 
 
