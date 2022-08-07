@@ -35,9 +35,9 @@ def close_single_order(orderId):
 # places single order 
 
 def place_order(price, position_size, side):
-    string = f"market=BITB_DOGE&side={side}&price={price}&amount={position_size}&nonce={get_timestamp()}"
+    string = f"market={config.trading_pair}&side={side}&price={price}&amount={position_size}&nonce={get_timestamp()}"
     sign = hashing(string)
-    params = f"market=BITB_DOGE&side={side}&price={price}&amount={position_size}&nonce={get_timestamp()}&signature={sign}"
+    params = f"market={config.trading_pair}&side={side}&price={price}&amount={position_size}&nonce={get_timestamp()}&signature={sign}"
     url = "https://stakecube.io/api/v2/exchange/spot/order"
     response = requests.post(url, headers = headers, data = params)
     print(response.json())
@@ -45,12 +45,13 @@ def place_order(price, position_size, side):
 
 
 
+
 # doesnt have orderId
 
 def order_history():
-	string = f"market=BITB_DOGE&nonce={get_timestamp()}"
+	string = f"market={config.trading_pair}&nonce={get_timestamp()}"
 	sign = hashing(string)
-	url = f"https://stakecube.io/api/v2/exchange/spot/myOrderHistory?market=BITB_DOGE&nonce={get_timestamp()}&signature={sign}"
+	url = f"https://stakecube.io/api/v2/exchange/spot/myOrderHistory?market={config.trading_pair}&nonce={get_timestamp()}&signature={sign}"
 	response = requests.get(url, headers = headers)
 	print(response)
 	print(response.json())
@@ -60,16 +61,16 @@ def order_history():
 # past trades - has orderID but not if order was filled 
 
 def my_trades():
-	string = f"market=BITB_DOGE&nonce={get_timestamp()}"
+	string = f"market={config.trading_pair}&nonce={get_timestamp()}"
 	sign = hashing(string)
-	url = f"https://stakecube.io/api/v2/exchange/spot/myTrades?market=BITB_DOGE&nonce={get_timestamp()}&signature={sign}"
+	url = f"https://stakecube.io/api/v2/exchange/spot/myTrades?market={config.trading_pair}&nonce={get_timestamp()}&signature={sign}"
 	response = requests.get(url, headers = headers)
 	return response.json()
 
 
 
 def get_single_ticker():
-	url = "https://stakecube.io/api/v2/exchange/spot/orderbook?market=BITB_DOGE"
+	url = f"https://stakecube.io/api/v2/exchange/spot/orderbook?market={config.trading_pair}"
 	orderbook = requests.get(url, headers = headers)
 	sell_count = len(orderbook.json()['result']['asks'])
 
@@ -172,7 +173,9 @@ while True:
                         print(sell_order['price'])
                         print(f"sell_order orderId = {sell_order['orderId']}")
                         new_buy_price = float(sell_order['price']) - config.grid_size
-                        new_buy_order = place_order(new_buy_price, config.position_size, "BUY")
+                        print(f"**************test************ {new_buy_price}")
+                        time.sleep(1)
+                        new_buy_order = place_order(new_buy_price, config.position_size, side = "BUY")
                         buy_orders.append(new_buy_order['result'])
                         print(f"buy_orders - {buy_orders}")
 
@@ -189,25 +192,25 @@ while True:
 
 
         for buy_order in buy_orders:
-        	for i in range(len(closed_trades['result'])):
-        		if buy_order['orderId'] == closed_trades['result'][i]['orderId']:
-        			print("**********************************************  buy_order loop ****************************")
-        			print("trade is closed")
-        			print("old buy_orders")
-        			print(buy_orders)
-        			print(buy_order['price'])
-        			print(f"buy_order orderId = {buy_order['orderId']}")
-        			new_sell_price = float(buy_order['price']) + config.grid_size
-        			new_sell_order = place_order(new_sell_price, config.position_size, "SELL")
-        			sell_orders.append(new_sell_order['result'])
-        			print(f"sell_orders - {sell_orders}")
-
-
-        			print(i)
-        			del buy_orders[i]
-        			print("new buy_orders array")
-        			print(buy_orders)
-        			break
+            for i in range(len(closed_trades['result'])):
+                if buy_order['orderId'] == closed_trades['result'][i]['orderId']:
+                    print("**********************************************  buy_order loop ****************************")
+                    print("trade is closed")
+                    print("old buy_orders")
+                    print(buy_orders)
+                    print(buy_order['price'])
+                    print(f"buy_order orderId = {buy_order['orderId']}")
+                    new_sell_price = float(buy_order['price']) + config.grid_size
+                    print(f"********test********** {new_sell_price}")
+                    time.sleep(1)
+                    new_sell_order = place_order(new_sell_price, config.position_size, side = "SELL")
+                    sell_orders.append(new_sell_order['result'])
+                    print(f"sell_orders - {sell_orders}")
+                    print(i)
+                    del buy_orders[i]
+                    print("new buy_orders array")
+                    print(buy_orders)
+                    break
 
         print("pausing")
         time.sleep(5)
@@ -221,7 +224,7 @@ while True:
 
 
 # def main():
-#     loop_dict = {'A': get_account, 'B': get_open_order_info}
+#     loop_dict = {'A': get_account, 'B': get_open_order_info, 'C': }
 #     while True:
 #         print()
 #         print("Welcome to the test menu")
