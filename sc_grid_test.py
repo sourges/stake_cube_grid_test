@@ -61,13 +61,14 @@ def order_history():
 # past trades - has orderID but not if order was filled 
 
 def my_trades():
-	string = f"market={config.trading_pair}&nonce={get_timestamp()}"
-	sign = hashing(string)
-	url = f"https://stakecube.io/api/v2/exchange/spot/myTrades?market={config.trading_pair}&nonce={get_timestamp()}&signature={sign}"
-	response = requests.get(url, headers = headers)
-	return response.json()
+    string = f"market={config.trading_pair}&nonce={get_timestamp()}"
+    sign = hashing(string)
+    url = f"https://stakecube.io/api/v2/exchange/spot/myTrades?market={config.trading_pair}&nonce={get_timestamp()}&signature={sign}"
+    response = requests.get(url, headers = headers)
+    #print(response.json())
+    return response.json()
 
-
+#my_trades()
 
 def get_single_ticker():
 	url = f"https://stakecube.io/api/v2/exchange/spot/orderbook?market={config.trading_pair}"
@@ -104,8 +105,8 @@ def get_open_order_info():
     sign = hashing(string)
     url = f"https://stakecube.io/api/v2/exchange/spot/myOpenOrder?nonce={get_timestamp()}&signature={sign}"
     response = requests.get(url, headers = headers)
-    print(response.json()['result'])
-    #return response.json()['result']
+    #print(response.json()['result'])
+    return response.json()['result']
 
 
 # will take out prints later - using them for testing right now
@@ -161,59 +162,73 @@ while True:
     else:
         print("*****************************************")
         	
+    closed_ids = []
 
-        for sell_order in sell_orders:
-            for i in range(len(closed_trades['result'])):
-                try:                                                       # testing try off and on while figuring out random error
-                    if sell_order['orderId'] == closed_trades['result'][i]['orderId']:                # testing more - looks like an error happens when a buy gets 'invalid signature parameter'
-                        print("****************************** sell_order loop ***************************")
-                        print("trade is closed")
-                        print("old sell_orders")
-                        print(sell_orders)
-                        print(sell_order['price'])
-                        print(f"sell_order orderId = {sell_order['orderId']}")
-                        new_buy_price = float(sell_order['price']) - config.grid_size
-                        print(f"**************test************ {new_buy_price}")
-                        time.sleep(1)
-                        new_buy_order = place_order(new_buy_price, config.position_size, side = "BUY")
-                        buy_orders.append(new_buy_order['result'])
-                        print(f"buy_orders - {buy_orders}")
+    for closed_trade in closed_trades['result']:
+        closed_ids.append(closed_trade['orderId'])
 
-
-                        print(i)
-                        del sell_orders[i]
-                        print("new sell_orders array")
-                        print(sell_orders)
-                        break
-                except Exception as e:
-                    print("/////////////////////// if error //////////////")
-                    continue	
+    
 
 
 
-        for buy_order in buy_orders:
-            for i in range(len(closed_trades['result'])):
-                if buy_order['orderId'] == closed_trades['result'][i]['orderId']:
-                    print("**********************************************  buy_order loop ****************************")
+    for sell_order in sell_orders:
+        for i in range(len(closed_trades['result'])):
+            try:                                                       # testing try
+                if sell_order['orderId'] == closed_trades['result'][i]['orderId']:                # testing more - looks like an error happens when a buy gets 'invalid signature parameter'
+                    print("****************************** sell_order loop ***************************")
                     print("trade is closed")
-                    print("old buy_orders")
-                    print(buy_orders)
-                    print(buy_order['price'])
-                    print(f"buy_order orderId = {buy_order['orderId']}")
-                    new_sell_price = float(buy_order['price']) + config.grid_size
-                    print(f"********test********** {new_sell_price}")
+                    print("old sell_orders")
+                    print(sell_orders)
+                    print(sell_order['price'])
+                    print(f"sell_order orderId = {sell_order['orderId']}")
+                    new_buy_price = float(sell_order['price']) - config.grid_size
+                    print(f"**************test************ {new_buy_price}")
                     time.sleep(1)
-                    new_sell_order = place_order(new_sell_price, config.position_size, side = "SELL")
-                    sell_orders.append(new_sell_order['result'])
-                    print(f"sell_orders - {sell_orders}")
-                    print(i)
-                    del buy_orders[i]
-                    print("new buy_orders array")
-                    print(buy_orders)
-                    break
+                    new_buy_order = place_order(new_buy_price, config.position_size, side = "BUY")
+                    buy_orders.append(new_buy_order['result'])
+                    print(f"buy_orders - {buy_orders}")
 
-        print("pausing")
-        time.sleep(5)
+
+                    print(i)
+                    print("new sell_orders array")
+                    print(sell_orders)
+                    break
+            except Exception as e:
+                print("/////////////////////// if error //////////////")
+                continue	
+
+
+
+
+    for buy_order in buy_orders:
+        for i in range(len(closed_trades['result'])):
+            if buy_order['orderId'] == closed_trades['result'][i]['orderId']:
+                print("**********************************************  buy_order loop ****************************")
+                print("trade is closed")
+                print("old buy_orders")
+                print(buy_orders)
+                print(buy_order['price'])
+                print(f"buy_order orderId = {buy_order['orderId']}")
+                new_sell_price = float(buy_order['price']) + config.grid_size
+                print(f"********test********** {new_sell_price}")
+                time.sleep(1)
+                new_sell_order = place_order(new_sell_price, config.position_size, side = "SELL")
+                sell_orders.append(new_sell_order['result'])
+                print(f"sell_orders - {sell_orders}")
+                print(i)
+                #del buy_orders[i]
+                print("new buy_orders array")
+                print(buy_orders)
+                break
+
+
+    for order_id in closed_ids:
+        buy_orders = [buy_order for buy_order in buy_orders if buy_order['orderId'] != order_id]
+
+        sell_orders = [sell_order for sell_order in sell_orders if sell_order['orderId'] != order_id]
+
+    print("pausing")
+    time.sleep(5)
 
 
 
