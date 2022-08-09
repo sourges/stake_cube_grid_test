@@ -92,20 +92,17 @@ def get_account():
     sign = hashing(string)
     url = f"https://stakecube.io/api/v2/user/account?nonce={get_timestamp()}&signature={sign}"
     response = requests.get(url, headers = headers)
-    #print(response.json()['result']['wallets'][0])
     for i in range(len(response.json()['result']['wallets'])):
         if float(response.json()['result']['wallets'][i]['balance']) > 0:
             print(f"{response.json()['result']['wallets'][i]['asset']} - {response.json()['result']['wallets'][i]['balance']}")
             
 
-#get_account()
 
 def get_open_order_info():
     string = f"nonce={get_timestamp()}"
     sign = hashing(string)
     url = f"https://stakecube.io/api/v2/exchange/spot/myOpenOrder?nonce={get_timestamp()}&signature={sign}"
     response = requests.get(url, headers = headers)
-    #print(response.json()['result'])
     return response.json()['result']
 
 
@@ -144,12 +141,6 @@ sell_orders, buy_orders = test_grid()
 closed_orders = []
 
 
-# closed_trades = my_trades() # ['orderId'] 
-orders = get_open_order_info()     # ['id'] - open
-# sell_orders, buy_orders     # ['orderId'] 
-
-
-
 # all prints in this loop for testing, will give more meaningful info later / take out random prints
 
 while True:
@@ -167,14 +158,11 @@ while True:
     for closed_trade in closed_trades['result']:
         closed_ids.append(closed_trade['orderId'])
 
-    
-
-
 
     for sell_order in sell_orders:
         for i in range(len(closed_trades['result'])):
-            try:                                                       # testing try
-                if sell_order['orderId'] == closed_trades['result'][i]['orderId']:                # testing more - looks like an error happens when a buy gets 'invalid signature parameter'
+            try:                                                                                            # might take out try since the error with the bellow if statement has been corrected
+                if sell_order['orderId'] == closed_trades['result'][i]['orderId']:               
                     print("****************************** sell_order loop ***************************")
                     print("trade is closed")
                     print("old sell_orders")
@@ -190,8 +178,7 @@ while True:
 
 
                     print(i)
-                    print("new sell_orders array")
-                    print(sell_orders)
+                    
                     break
             except Exception as e:
                 print("/////////////////////// if error //////////////")
@@ -216,9 +203,7 @@ while True:
                 sell_orders.append(new_sell_order['result'])
                 print(f"sell_orders - {sell_orders}")
                 print(i)
-                #del buy_orders[i]
-                print("new buy_orders array")
-                print(buy_orders)
+                
                 break
 
 
