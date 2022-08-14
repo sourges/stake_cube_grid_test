@@ -212,7 +212,7 @@ while True:
 
         sell_orders = [sell_order for sell_order in sell_orders if sell_order['orderId'] != order_id]
 
-    print("pausing")
+    print(f"pausing {config.trading_pair}")
     time.sleep(5)
 
 
