@@ -1,3 +1,9 @@
+# after testing for a month some errors found.
+# current errors - 'invalid signature parameter', 'balance to small', 'pending process need to finish'
+#                  'error': 'Order rejected. Error-Code: 99' - have only seen once
+
+
+# also, sometimes on startup while placing order, invalid signature parameter is sometimes error'd.  will change logic after testing of new errors are completed
 
 
 import hmac
@@ -68,7 +74,7 @@ def my_trades():
     #print(response.json())
     return response.json()
 
-#my_trades()
+
 
 def get_single_ticker():
 	url = f"https://stakecube.io/api/v2/exchange/spot/orderbook?market={config.trading_pair}"
@@ -95,7 +101,7 @@ def get_account():
     for i in range(len(response.json()['result']['wallets'])):
         if float(response.json()['result']['wallets'][i]['balance']) > 0:
             print(f"{response.json()['result']['wallets'][i]['asset']} - {response.json()['result']['wallets'][i]['balance']}")
-            
+
 
 
 def get_open_order_info():
@@ -106,7 +112,18 @@ def get_open_order_info():
     return response.json()['result']
 
 
-# will take out prints later - using them for testing right now
+
+# def rate_limit():
+#     string = f"nonce={get_timestamp()}"
+#     sign = hashing(string)
+#     url = f"https://stakecube.io/api/v2/system/rateLimits?nonce={get_timestamp()}&signature={sign}"
+#     response = requests.get(url, headers = headers)
+#     print(response)
+#     print(response.json())
+
+# rate_limit()
+
+
 
 def test_grid():
 
@@ -173,11 +190,19 @@ while True:
                     print(f"**************test************ {new_buy_price}")
                     time.sleep(1)
                     new_buy_order = place_order(new_buy_price, config.position_size, side = "BUY")
+
+
+
+                    while new_buy_order['success'] == False:                     # 2 errors fixed here ( currently testing ) - invalid signature parameter, pending process need to finish
+                        print("************** BUY ERROR*************")           # this will give an infiniate loop if not enough balance, will add if statement 
+                        time.sleep(1)                        
+                        new_buy_order = place_order(new_buy_price, config.position_size, side = "BUY")
+
+
+
+
                     buy_orders.append(new_buy_order['result'])
                     print(f"buy_orders - {buy_orders}")
-
-
-                    print(i)
                     
                     break
             except Exception as e:
@@ -200,48 +225,28 @@ while True:
                 print(f"********test********** {new_sell_price}")
                 time.sleep(1)
                 new_sell_order = place_order(new_sell_price, config.position_size, side = "SELL")
+
+
+
+
+
+                while new_sell_order['success'] == False:
+                    print("**************pending process need to finish ERROR*************")     # 2 errors fixed here ( currently testing ) - invalid signature parameter, pending process need to finish
+                    time.sleep(1)                                                                # this will give an infiniate loop if not enough balance, will add if statement
+                    new_sell_order = place_order(new_sell_price, config.position_size, side = "SELL")
+
+
+
                 sell_orders.append(new_sell_order['result'])
                 print(f"sell_orders - {sell_orders}")
-                print(i)
                 
                 break
 
 
-    for order_id in closed_ids:
+    for order_id in closed_ids:  # need try here?
         buy_orders = [buy_order for buy_order in buy_orders if buy_order['orderId'] != order_id]
 
         sell_orders = [sell_order for sell_order in sell_orders if sell_order['orderId'] != order_id]
 
     print(f"pausing {config.trading_pair}")
     time.sleep(5)
-
-
-
-# a quick CLI menu so user does not have to constantly change out traded pairs
-# eventually will add grid_size, amount, etc
-# funtional but useless for now
-
-
-
-# def main():
-#     loop_dict = {'A': get_account, 'B': get_open_order_info, 'C': }
-#     while True:
-#         print()
-#         print("Welcome to the test menu")
-#         print('''What would you like to do:
-# A - Check available account balances 
-# B - Check open positions ''')
-#         print()
-#         answer = input("Enter 'A', 'B' or 'Q' to quit: ").upper()
-#         if answer == 'Q':
-#             break
-#         for x in loop_dict:
-#             if x == answer:
-#                 loop_dict[x]()
-#                 #test = loop_dict[x]()      # - printing info from function or creating an object that has value? - figure out as loop gets bigger
-#                 #print(test)
-
-
-
-# if __name__ == '__main__':
-#     main()
